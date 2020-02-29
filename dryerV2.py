@@ -33,8 +33,8 @@ def send_email():
     subject = "Message from Spot: " + datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
     msg = """The dryer has stopped."""
     try:
-        with Email(config.EMAIL_ADDRESS, config.PASSWORD) as email:
-            email.send_email("lwiebedembowski@gmail.com", subject, msg)
+        with Email(config.SENDER_EMAIL_ADDRESS, config.SENDER_EMAIL_PASSWORD) as email:
+            email.send_email(config.RECEIVER_EMAIL_ADDRESS, subject, msg)
     except Exception as e:
         print("Email failed to send.")
         print(e)
