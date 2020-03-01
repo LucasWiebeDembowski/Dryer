@@ -66,14 +66,18 @@ def mean_abs_dev(xVals, avg):
 
 i2c = busio.I2C(board.SCL, board.SDA)
 accelerometer = adafruit_adxl34x.ADXL345(i2c)
-RUNNING_THRESHOLD = 2 # mean deviation is about 0.5 when the dryer isn't running, and 20-25 when it is running.
+
+# Thresholds picked by eyeballing the graph and leaving some arbitrary margin for wiggle room.
+# Mean deviation is about 0.5 when the dryer isn't running, and 20-25 when it is running.
+RUNNING_THRESHOLD_LO = 2
+RUNNING_THRESHOLD_HI = 40
 
 # Compute initial N values and determine if the dryer is running or not.
 
 N = 100
 asquaredVals = np.fromiter((squared_length(sample_acceleration(accelerometer, 0.01)) for i in range(N)), float, N)
 avg = np.average(asquaredVals)
-prev_running = mean_abs_dev(asquaredVals, avg) > RUNNING_THRESHOLD
+prev_running = mean_abs_dev(asquaredVals, avg) > RUNNING_THRESHOLD_LO
 
 # Start main loop
 
@@ -82,16 +86,19 @@ while True:
     asquaredVals[N - 1] = squared_length(sample_acceleration(accelerometer, 0.1))
     avg = rolling_average(N, avg, asquaredVals[N - 1], asquaredVals[0])
     meanDev = mean_abs_dev(asquaredVals, avg)
+    
+    if meanDev >= RUNNING_THRESHOLD_HI:
+        continue # Reject outliers caused by loading/unloading laundry, opening/closing door.
 
     # print("%10f" %(meanDevVals[N-1]))
-    running = meanDev > RUNNING_THRESHOLD
+    running = meanDev > RUNNING_THRESHOLD_LO
     
     # Reset the timer when you start the dryer.
     if running and not prev_running:
         startTime = time.time_ns()
 
-    # To avoid potential email spam as meanDevVals[N - 1] slowly crosses RUNNING_THRESHOLD,
-    # only send email if dryer was running for at least 10 seconds.
+    # To avoid potential email spam as meanDevVals[N - 1] slowly crosses RUNNING_THRESHOLD_LO,
+    # only send email if dryer stopped after running for at least 10 seconds.
     if time.time_ns() - startTime > 10*1000000000 and not running and prev_running:
         print("Dryer has stopped.")
         send_email()
