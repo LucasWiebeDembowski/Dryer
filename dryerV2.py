@@ -98,8 +98,9 @@ while True:
         startTime = time.time_ns()
 
     # To avoid potential email spam as meanDevVals[N - 1] slowly crosses RUNNING_THRESHOLD_LO,
-    # only send email if dryer stopped after running for at least 10 seconds.
-    if time.time_ns() - startTime > 10*1000000000 and not running and prev_running:
+    # only send email if dryer stopped after running for at least MIN_RUNTIME seconds.
+    MIN_RUNTIME = 60
+    if time.time_ns() - startTime > MIN_RUNTIME*1000000000 and not running and prev_running:
         print("Dryer has stopped.")
         send_email()
 
