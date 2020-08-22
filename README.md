@@ -13,3 +13,5 @@ Recommend using some burner account you don't care about as the sender, and your
 ##### Stop the program
 `sudo ./killDryer.sh`
 
+##### Check if dryer monitor is running
+`pgrep -f "python3 dryer"`

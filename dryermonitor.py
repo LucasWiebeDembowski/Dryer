@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # https://github.com/adafruit/Adafruit_CircuitPython_ADXL34x
 # https://www.youtube.com/watch?v=NPTK0inTldw
 # sudo i2cdetect -y 1
@@ -29,15 +31,14 @@ class Email:
     def __exit__(self, type, value, traceback):
         self.server.quit()
 
-def send_email():
+def send_email(msg):
     subject = "Message from Spot: " + datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
-    msg = """The dryer has stopped."""
     try:
         with Email(config.SENDER_EMAIL_ADDRESS, config.SENDER_EMAIL_PASSWORD) as email:
             email.send_email(config.RECEIVER_EMAIL_ADDRESS, subject, msg)
-    except Exception as e:
+    except Exception as ex:
         print("Email failed to send.")
-        print(e)
+        print(ex)
 
 # Sleep for sampleTime seconds, then return an accelerometer reading (array of three values)
 def sample_acceleration(accelerometer, sampleTime):
@@ -101,8 +102,8 @@ while True:
     # only send email if dryer stopped after running for at least MIN_RUNTIME seconds.
     MIN_RUNTIME = 60
     if time.time_ns() - startTime > MIN_RUNTIME*1000000000 and not running and prev_running:
-        print("Dryer has stopped.")
-        send_email()
+        print("The dryer has stopped.")
+        send_email("The dryer has stopped.")
 
     prev_running = running
     asquaredVals = np.roll(asquaredVals, -1)

@@ -5,6 +5,6 @@ if [ $(id -u) -eq 0 ]; then
     nohup python3 $dryerScript &
     echo "Started $dryerScript with PID $(pgrep -f "python3 $dryerScript")"
 else
-    echo "Error. Must be run as sudo or root."
+    echo "Error. Must be run as root."
     exit 1
 fi
