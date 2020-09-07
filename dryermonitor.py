@@ -11,7 +11,7 @@ import board
 import busio
 import numpy as np
 import adafruit_adxl34x
-
+import logging
 
 # Sleep for sampleTime seconds, then return an accelerometer reading (array of three values)
 def sample_acceleration(accelerometer, sampleTime):
@@ -37,8 +37,18 @@ def mean_abs_dev(xVals, avg):
     return np.sum(np.fromiter((abs(x - avg) for x in xVals), float, xVals.size)) / xVals.size
 
 ####################################################################################################
+def get_dryer_logger():
+    logger = logging.getLogger()
+    fileHandler = logging.FileHandler("dryer.log")
+    formatter = logging.Formatter('%(asctime)s %(levelname)-8s %(message)s')
+    fileHandler.setFormatter(formatter)
+    logger.addHandler(fileHandler)
+    logger.setLevel(logging.DEBUG)
+    return logger
 
 def run_dryermonitor():
+    logger = get_dryer_logger()
+
     i2c = busio.I2C(board.SCL, board.SDA)
     accelerometer = adafruit_adxl34x.ADXL345(i2c)
 
@@ -70,6 +80,7 @@ def run_dryermonitor():
         
         # Reset the timer when you start the dryer.
         if running and not prev_running:
+            logger.debug("Dryer started.")
             startTime = time.time_ns()
 
         # To avoid potential email spam as meanDev slowly crosses RUNNING_THRESHOLD_LO,
@@ -78,8 +89,8 @@ def run_dryermonitor():
         BILLION = 1000000000
         runtime_ns = time.time_ns() - startTime
         if runtime_ns > MIN_RUNTIME*BILLION and not running and prev_running:
-            msg = f"The dryer stopped afer {runtime_ns / BILLION} seconds."
-            print(msg)
+            msg = f"Dryer stopped afer {runtime_ns / BILLION} seconds."
+            logger.debug(msg)
             send_email(msg)
 
         prev_running = running
