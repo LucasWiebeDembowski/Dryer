@@ -1,3 +1,5 @@
+from dryermonitor import *
+
 import socket
 import sys
 from threading import Thread
@@ -35,6 +37,9 @@ def client_thread(conn, addr):
         elif "killserver" == data:
             print(f"Client {addr[1]} has killed this server.")
             stopped = True
+        elif "run" == data:
+            print("running")
+
         reply = "Python response: You sent: " + data + "\n"
         print(f"Client {addr[1]} command: " + data)
         conn.send(str.encode(reply))
@@ -42,13 +47,16 @@ def client_thread(conn, addr):
 
 ###################################################################################################
 
+dryerTh = Thread(target=run_dryermonitor)
+dryerTh.start()
+
 tcpServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 tcpServer.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 # s.bind((socket.gethostname(), 1234))
 # s.bind(("192.168.193.135", 1234))
 # s.bind(("192.168.1.42", 1234))
 # tcpServer.bind(("192.168.100.105", 1234)) # My desktop
-tcpServer.bind(("192.168.100.107", 51415)) # Spot
+tcpServer.bind(("192.168.100.107", 1234)) # Spot
 tcpServer.settimeout(0.2) # timeout for listening
 # tcpServer.listen(5)
 
@@ -71,5 +79,8 @@ while not stopped:
 tcpServer.close()
 for clientTh in threads:
     clientTh.join()
-    
+print("waiting for dryerloop to stop")
+stopLoop()
+dryerTh.join()
+
 print("Exiting Server.")

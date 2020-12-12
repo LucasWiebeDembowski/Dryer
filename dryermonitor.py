@@ -13,6 +13,12 @@ import numpy as np
 import adafruit_adxl34x
 import logging
 
+stopTheDryerLoop = False
+
+def stopLoop():
+    global stopTheDryerLoop
+    stopTheDryerLoop = True
+
 # Sleep for sampleTime seconds, then return an accelerometer reading (array of three values)
 def sample_acceleration(accelerometer, sampleTime):
     time.sleep(sampleTime)
@@ -47,6 +53,7 @@ def get_dryer_logger():
     return logger
 
 def run_dryermonitor():
+    global stopTheDryerLoop
     logger = get_dryer_logger()
 
     i2c = busio.I2C(board.SCL, board.SDA)
@@ -66,8 +73,9 @@ def run_dryermonitor():
 
     # Start main loop
 
+    BILLION = 1000000000
     startTime = time.time_ns()
-    while True:
+    while not stopTheDryerLoop:
         asquaredVals[N - 1] = squared_length(sample_acceleration(accelerometer, 0.1))
         avg = rolling_average(N, avg, asquaredVals[N - 1], asquaredVals[0])
         meanDev = mean_abs_dev(asquaredVals, avg)
@@ -85,8 +93,7 @@ def run_dryermonitor():
 
         # To avoid potential email spam as meanDev slowly crosses RUNNING_THRESHOLD_LO,
         # only send email if dryer stopped after running for at least MIN_RUNTIME seconds.
-        MIN_RUNTIME = 60
-        BILLION = 1000000000
+        MIN_RUNTIME = 30
         runtime_ns = time.time_ns() - startTime
         if runtime_ns > MIN_RUNTIME*BILLION and not running and prev_running:
             msg = f"Dryer stopped afer {runtime_ns / BILLION} seconds."
@@ -96,4 +103,5 @@ def run_dryermonitor():
         prev_running = running
         asquaredVals = np.roll(asquaredVals, -1)
 
-run_dryermonitor()
+if __name__ == "__main__":
+    run_dryermonitor()

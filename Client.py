@@ -15,7 +15,7 @@ client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 # s.connect(("192.168.193.135", 1234))
 # s.connect(("192.168.1.42", 1234))
 # s.connect(("192.168.100.105", 1234)) # My desktop
-client.connect(("192.168.100.107", 51415)) # Spot
+client.connect(("192.168.100.107", 1234)) # Spot
 
 usrIn = ""
 response = recvMsg(client, '\n')

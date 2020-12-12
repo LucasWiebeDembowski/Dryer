@@ -1,4 +1,21 @@
 #!/bin/bash
+
+dryerScript="dryermonitor.py"
+
+list() {
+    local pid=$(pgrep -f "python3 $dryerScript")
+    if [ -z "$pid" ]; then
+        echo "Dryer server is not up."
+    else
+        echo "Dryer server is up."
+        echo "PID: $pid"
+    fi
+}
+
+runDryer() {
+    echo
+}
+
 # saner programming env: these switches turn some bugs into errors
 set -o errexit -o pipefail -o noclobber -o nounset
 
@@ -43,10 +60,12 @@ while true; do
             ;;
         -l|--list)
             l=y
+            list
             shift
             ;;
         -r|--run)
             r=y
+            runDryer
             shift
             ;;
         -s|--stop)
