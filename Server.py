@@ -27,22 +27,23 @@ def recvMsg(conn, delim):
 def client_thread(conn, addr):
     global stopped
     conn.send(str.encode("Welcome to the Python server. Type something and press enter.\n"))
-    while not stopped:
+    while not stopped: # This loop also stops if the client process terminates.
         data = recvMsg(conn, '\n')
-        if not data:
+        if not data or "quit" == data:
             break
-        if "quit" == data:
-            print(f"Client {addr[1]} has disconnected.")
-            break;
         elif "killserver" == data:
             print(f"Client {addr[1]} has killed this server.")
             stopped = True
         elif "run" == data:
             print("running")
-
-        reply = "Python response: You sent: " + data + "\n"
-        print(f"Client {addr[1]} command: " + data)
-        conn.send(str.encode(reply))
+        elif "list" == data:
+            runningStr = (not getRunningStatus()) * "NOT "
+            conn.send(str.encode(f"Dryer is {runningStr}running\n"))
+        else:
+            print(f"Client {addr[1]} command: " + data)
+            reply = "Unimplemented server command: " + data + "\n"
+            conn.send(str.encode(reply))
+    print(f"Client {addr[1]} has disconnected.")
     conn.close()
 
 ###################################################################################################
@@ -80,7 +81,7 @@ tcpServer.close()
 for clientTh in threads:
     clientTh.join()
 print("waiting for dryerloop to stop")
-stopLoop()
+stopDryerLoop()
 dryerTh.join()
 
 print("Exiting Server.")
