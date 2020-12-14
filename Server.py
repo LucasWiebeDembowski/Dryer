@@ -4,11 +4,11 @@ import socket
 import sys
 from threading import Thread
 
-stopped = False
+serverRunning = True
 def recvMsg(conn, delim):
     global stopped
     full_msg = ''
-    while not stopped:
+    while serverRunning:
         try:
             msg = conn.recv(1)
         except socket.timeout:
@@ -25,20 +25,20 @@ def recvMsg(conn, delim):
     return full_msg
 
 def client_thread(conn, addr):
-    global stopped
+    global serverRunning
     conn.send(str.encode("Welcome to the Python server. Type something and press enter.\n"))
-    while not stopped: # This loop also stops if the client process terminates.
+    while serverRunning: # This loop also stops if the client process terminates.
         data = recvMsg(conn, '\n')
         if not data or "quit" == data:
             break
         elif "killserver" == data:
             print(f"Client {addr[1]} has killed this server.")
-            stopped = True
+            serverRunning = False
         elif "run" == data:
             print("running")
         elif "list" == data:
             runningStr = (not getRunningStatus()) * "NOT "
-            conn.send(str.encode(f"Dryer is {runningStr}running\n"))
+            conn.send(str.encode(f"Dryer is {runningStr}running"))
         else:
             print(f"Client {addr[1]} command: " + data)
             reply = "Unimplemented server command: " + data + "\n"
@@ -62,7 +62,7 @@ tcpServer.settimeout(0.2) # timeout for listening
 # tcpServer.listen(5)
 
 threads = []
-while not stopped:
+while serverRunning:
     try:
         tcpServer.listen(1) 
         (conn, (ip, port)) = tcpServer.accept() 

@@ -14,11 +14,11 @@ import adafruit_adxl34x
 import logging
 
 stopTheDryerLoop = False
-running = False
+dryerRunning = False # True if the dryer is running.
 
 def getRunningStatus():
-    global running
-    return running
+    global dryerRunning
+    return dryerRunning
 
 def stopDryerLoop():
     global stopTheDryerLoop
@@ -59,7 +59,7 @@ def get_dryer_logger():
 
 def run_dryermonitor():
     global stopTheDryerLoop
-    global running
+    global dryerRunning
     logger = get_dryer_logger()
 
     i2c = busio.I2C(board.SCL, board.SDA)
@@ -90,23 +90,23 @@ def run_dryermonitor():
             continue # Reject outliers caused by loading/unloading laundry, opening/closing door.
 
         # print("%10f" %(meanDevVals[N-1]))
-        running = meanDev > RUNNING_THRESHOLD_LO
+        dryerRunning = meanDev > RUNNING_THRESHOLD_LO
         
         # Reset the timer when you start the dryer.
-        if running and not prev_running:
+        if dryerRunning and not prev_running:
             logger.debug("Dryer started.")
             startTime = time.time_ns()
 
         # To avoid potential email spam as meanDev slowly crosses RUNNING_THRESHOLD_LO,
-        # only send email if dryer stopped after running for at least MIN_RUNTIME seconds.
-        MIN_RUNTIME = 30
-        runtime_ns = time.time_ns() - startTime
-        if runtime_ns > MIN_RUNTIME*BILLION and not running and prev_running:
-            msg = f"Dryer stopped afer {runtime_ns / BILLION} seconds."
+        # only send email if dryer stopped after running for at least MIN_RUNTIME_SEC seconds.
+        MIN_RUNTIME_SEC = 30
+        runtime_s = (time.time_ns() - startTime) / BILLION
+        if runtime_s > MIN_RUNTIME_SEC and not dryerRunning and prev_running:
+            msg = f"Dryer stopped afer {runtime_s} seconds."
             logger.debug(msg)
             send_email(msg)
 
-        prev_running = running
+        prev_running = dryerRunning
         asquaredVals = np.roll(asquaredVals, -1)
 
 if __name__ == "__main__":
