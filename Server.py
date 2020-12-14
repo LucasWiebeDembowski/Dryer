@@ -5,6 +5,8 @@ import sys
 from threading import Thread
 
 serverRunning = True
+dryerTh = None
+
 def recvMsg(conn, delim):
     global stopped
     full_msg = ''
@@ -26,6 +28,7 @@ def recvMsg(conn, delim):
 
 def client_thread(conn, addr):
     global serverRunning
+    global dryerTh
     conn.send(str.encode("Welcome to the Python server. Type something and press enter.\n"))
     while serverRunning: # This loop also stops if the client process terminates.
         data = recvMsg(conn, '\n')
@@ -34,11 +37,21 @@ def client_thread(conn, addr):
         elif "killserver" == data:
             print(f"Client {addr[1]} has killed this server.")
             serverRunning = False
-        elif "run" == data:
-            print("running")
+        elif "start" == data:
+            if not dryerTh:
+                print("Starting")
+                dryerTh = Thread(target=run_dryermonitor)
+                dryerTh.start()
+        elif "stop" == data:
+            if dryerTh:
+                print("Stopping")
+                stopDryerLoop()
+                dryerTh.join()
+                dryerTh = None
         elif "list" == data:
-            runningStr = (not getRunningStatus()) * "NOT "
-            conn.send(str.encode(f"Dryer is {runningStr}running"))
+            monitorStatus = (not dryerMonitorRunning()) * "NOT " + "running"
+            dryerStatus = (not getDryerRunning()) * "NOT " + "running"
+            conn.send(str.encode(f"{monitorStatus},{dryerStatus}"))
         else:
             print(f"Client {addr[1]} command: " + data)
             reply = "Unimplemented server command: " + data + "\n"
@@ -47,9 +60,6 @@ def client_thread(conn, addr):
     conn.close()
 
 ###################################################################################################
-
-dryerTh = Thread(target=run_dryermonitor)
-dryerTh.start()
 
 tcpServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 tcpServer.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -80,8 +90,5 @@ while serverRunning:
 tcpServer.close()
 for clientTh in threads:
     clientTh.join()
-print("waiting for dryerloop to stop")
-stopDryerLoop()
-dryerTh.join()
 
 print("Exiting Server.")

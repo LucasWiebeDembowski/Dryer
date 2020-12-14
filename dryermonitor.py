@@ -13,12 +13,16 @@ import numpy as np
 import adafruit_adxl34x
 import logging
 
-stopTheDryerLoop = False
+stopTheDryerLoop = True
 dryerRunning = False # True if the dryer is running.
 
-def getRunningStatus():
+def getDryerRunning():
     global dryerRunning
     return dryerRunning
+
+def dryerMonitorRunning():
+    global stopTheDryerLoop
+    return not stopTheDryerLoop
 
 def stopDryerLoop():
     global stopTheDryerLoop
@@ -60,6 +64,8 @@ def get_dryer_logger():
 def run_dryermonitor():
     global stopTheDryerLoop
     global dryerRunning
+    stopTheDryerLoop = False
+
     logger = get_dryer_logger()
 
     i2c = busio.I2C(board.SCL, board.SDA)
