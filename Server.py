@@ -64,6 +64,9 @@ def client_thread(conn, addr):
 
 ###################################################################################################
 
+dryerTh = Thread(target=dryer.run_dryermonitor)
+dryerTh.start()
+
 tcpServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 tcpServer.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 # s.bind((socket.gethostname(), 1234))
