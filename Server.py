@@ -6,6 +6,7 @@ from threading import Thread
 
 serverRunning = True
 dryerTh = None
+dryer = Dryer()
 
 def recvMsg(conn, delim):
     global stopped
@@ -29,6 +30,7 @@ def recvMsg(conn, delim):
 def client_thread(conn, addr):
     global serverRunning
     global dryerTh
+    global dryer
     conn.send(str.encode("Welcome to the Python server. Type something and press enter.\n"))
     while serverRunning: # This loop also stops if the client process terminates.
         data = recvMsg(conn, '\n')
@@ -38,20 +40,21 @@ def client_thread(conn, addr):
             print(f"Client {addr[1]} has killed this server.")
             serverRunning = False
         elif "start" == data:
-            if not dryerTh:
+            if dryer and not dryerTh:
                 print("Starting")
-                dryerTh = Thread(target=run_dryermonitor)
+                dryerTh = Thread(target=dryer.run_dryermonitor)
                 dryerTh.start()
         elif "stop" == data:
             if dryerTh:
                 print("Stopping")
-                stopDryerLoop()
+                dryer.stopDryerLoop()
                 dryerTh.join()
                 dryerTh = None
         elif "list" == data:
-            monitorStatus = (not dryerMonitorRunning()) * "NOT " + "running"
-            dryerStatus = (not getDryerRunning()) * "NOT " + "running"
-            conn.send(str.encode(f"{monitorStatus},{dryerStatus}"))
+            if dryer:
+                monitorStatus = (not dryer.dryerMonitorRunning()) * "NOT " + "running"
+                dryerStatus = (not dryer.getDryerRunning()) * "NOT " + "running"
+                conn.send(str.encode(f"{monitorStatus},{dryerStatus}"))
         else:
             print(f"Client {addr[1]} command: " + data)
             reply = "Unimplemented server command: " + data + "\n"
