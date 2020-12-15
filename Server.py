@@ -53,7 +53,7 @@ def client_thread(conn, addr):
         elif "list" == data:
             if dryer:
                 monitorStatus = (not dryer.dryerMonitorRunning()) * "NOT " + "running"
-                dryerStatus = (not dryer.getDryerRunning()) * "NOT " + "running"
+                dryerStatus = ((not dryer.getDryerRunning()) * "NOT " + "running") if dryer.dryerMonitorRunning() else "Unknown"
                 conn.send(str.encode(f"{monitorStatus},{dryerStatus}"))
         else:
             print(f"Client {addr[1]} command: " + data)
