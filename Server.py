@@ -95,6 +95,12 @@ while serverRunning:
 
 tcpServer.close()
 for clientTh in threads:
+    print("Joining client")
     clientTh.join()
+
+if dryerTh:
+    print("Joining dryerTh")
+    dryer.stopDryerLoop()
+    dryerTh.join()
 
 print("Exiting Server.")
