@@ -13,21 +13,6 @@ import numpy as np
 import adafruit_adxl34x
 import logging
 
-# stopTheDryerLoop = True
-# dryerRunning = False # True if the dryer is running.
-
-# def getDryerRunning():
-#     global dryerRunning
-#     return dryerRunning
-
-# def dryerMonitorRunning():
-#     global stopTheDryerLoop
-#     return not stopTheDryerLoop
-
-# def stopDryerLoop():
-#     global stopTheDryerLoop
-#     stopTheDryerLoop = True
-
 # Sleep for sampleTime seconds, then return an accelerometer reading (array of three values)
 def sample_acceleration(accelerometer, sampleTime):
     time.sleep(sampleTime)
@@ -65,6 +50,7 @@ class Dryer:
     def __init__(self):
         self.stopTheDryerLoop = True
         self.dryerRunning = False # True if the dryer is running.
+        self.runtime_s = 0
 
     def getDryerRunning(self):
         return self.dryerRunning
@@ -74,6 +60,9 @@ class Dryer:
 
     def stopDryerLoop(self):
         self.stopTheDryerLoop = True
+
+    def getRuntimeSec(self):
+        return time.strftime("%H:%M:%S", time.gmtime(self.runtime_s))
 
     def run_dryermonitor(self):
         # global stopTheDryerLoop
@@ -120,9 +109,10 @@ class Dryer:
             # To avoid potential email spam as meanDev slowly crosses RUNNING_THRESHOLD_LO,
             # only send email if dryer stopped after running for at least MIN_RUNTIME_SEC seconds.
             MIN_RUNTIME_SEC = 30
-            runtime_s = (time.time_ns() - startTime) / BILLION
-            if runtime_s > MIN_RUNTIME_SEC and not self.dryerRunning and prev_running:
-                msg = f"Dryer stopped afer {runtime_s} seconds."
+            self.runtime_s = self.dryerRunning * (time.time_ns() - startTime) / BILLION
+            if self.runtime_s > MIN_RUNTIME_SEC and not self.dryerRunning and prev_running:
+                msg = f"Dryer stopped afer {self.runtime_s} seconds."
+                self.runtime_s = 0
                 logger.debug(msg)
                 send_email(msg)
 
