@@ -1,6 +1,6 @@
 #!/bin/bash
 
-dryerScript="dryermonitor.py"
+dryerScript="Server.py"
 
 list() {
     local pid=$(pgrep -f "python3 $dryerScript")
@@ -12,8 +12,13 @@ list() {
     fi
 }
 
-runDryer() {
-    echo
+runDryerServer() {
+    nohup python3 $dryerScript &
+    echo "Started $dryerScript with PID $(pgrep -f "python3 $dryerScript")"
+}
+
+killDryerServer() {
+    pkill -f "python3 $dryerScript" && echo "Successfully killed dryer" || echo "Could not kill dryer."
 }
 
 # saner programming env: these switches turn some bugs into errors
@@ -34,8 +39,8 @@ fi
 #     -l, --list      list PID, uptime, maybe other info, about the dryer monitor if it is running, or "Not running" if the monitor is not running.
 #     -q, --query     query the dryer monitor with the state of the dryer (dryer running or not), or "Not running" if the monitor is not running. This option could be combined with --list so we wouldn't need this.
 
-OPTIONS=hlrs
-LONGOPTS=help,list,run,stop
+OPTIONS=hlrkst
+LONGOPTS=help,list,run,kill,start,stop
 
 # -regarding ! and PIPESTATUS see above
 # -temporarily store output to be able to check for errors
@@ -65,11 +70,21 @@ while true; do
             ;;
         -r|--run)
             r=y
-            runDryer
+            runDryerServer
             shift
             ;;
-        -s|--stop)
+        -s|--kill)
+            killDryerServer
+            shift
+            ;;
+        -s|--start)
             s=y
+            echo "start" | nc -q0 192.168.100.107 1234
+            shift
+            ;;
+        -t|--stop)
+            s=y
+            echo "stop" | nc -q0 192.168.100.107 1234
             shift
             ;;
         --)
