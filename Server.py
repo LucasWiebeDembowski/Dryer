@@ -31,7 +31,7 @@ def client_thread(conn, addr):
     global serverRunning
     global dryerTh
     global dryer
-    conn.send(str.encode("Welcome to the Python server. Type something and press enter.\n"))
+    # conn.send(str.encode("Welcome to the Python server. Type something and press enter.\n"))
     while serverRunning: # This loop also stops if the client process terminates.
         data = recvMsg(conn, '\n')
         if not data or "quit" == data:
@@ -55,7 +55,7 @@ def client_thread(conn, addr):
                 monitorStatus = (not dryer.dryerMonitorRunning()) * "NOT " + "running"
                 dryerStatus = ((not dryer.getDryerRunning()) * "NOT " + "running") if dryer.dryerMonitorRunning() else "Unknown"
                 dryerRuntime = dryer.getRuntimeSec()
-                conn.send(str.encode(f"{monitorStatus},{dryerStatus},{dryerRuntime}"))
+                conn.send(str.encode(f"{monitorStatus},{dryerStatus},{dryerRuntime}\n"))
         else:
             print(f"Client {addr[1]} command: " + data)
             reply = "Unimplemented server command: " + data + "\n"
