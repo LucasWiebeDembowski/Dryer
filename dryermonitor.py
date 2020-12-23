@@ -52,6 +52,7 @@ class Dryer:
         self.dryerRunning = False # True if the dryer is running.
         self.runtime_s = 0
         self.dryerStopped = False
+        self.lastRuntime_s = 0 # Duration of the last dryer run.
 
     def getDryerRunning(self):
         return self.dryerRunning
@@ -73,6 +74,9 @@ class Dryer:
             return True
         else:
             return False
+
+    def getLastRuntime(self):
+        return time.strftime("%H:%M:%S", time.gmtime(self.lastRuntime_s))
 
     def run_dryermonitor(self):
         self.stopTheDryerLoop = False
@@ -111,14 +115,16 @@ class Dryer:
             # Reset the timer when you start the dryer.
             if self.dryerRunning and not prev_running:
                 logger.debug("Dryer started.")
+                self.lastRuntime_s = 0
                 startTime = time.time_ns()
 
             # To avoid potential email spam as meanDev slowly crosses RUNNING_THRESHOLD_LO,
             # only send email if dryer stopped after running for at least MIN_RUNTIME_SEC seconds.
-            MIN_RUNTIME_SEC = 30
+            MIN_RUNTIME_SEC = 20
             self.runtime_s = (self.dryerRunning or prev_running) * (time.time_ns() - startTime) / BILLION
             if self.runtime_s > MIN_RUNTIME_SEC and not self.dryerRunning and prev_running:
                 msg = f"Dryer stopped afer {self.runtime_s} seconds."
+                self.lastRuntime_s = self.runtime_s
                 self.runtime_s = 0 # Must reset runtime_s AFTER checking if the dryer stopped.
                 logger.debug(msg)
                 # send_email(msg)
