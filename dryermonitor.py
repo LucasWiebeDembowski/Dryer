@@ -51,6 +51,7 @@ class Dryer:
         self.stopTheDryerLoop = True
         self.dryerRunning = False # True if the dryer is running.
         self.runtime_s = 0
+        self.dryerStopped = False
 
     def getDryerRunning(self):
         return self.dryerRunning
@@ -64,9 +65,16 @@ class Dryer:
     def getRuntimeSec(self):
         return time.strftime("%H:%M:%S", time.gmtime(self.runtime_s))
 
+    def getDryerStopped(self):
+        # The dryer stopping is an event, not a state.
+        # So the flag needs to only be true until it is checked.
+        if self.dryerStopped == True:
+            self.dryerStopped = False
+            return True
+        else:
+            return False
+
     def run_dryermonitor(self):
-        # global stopTheDryerLoop
-        # global dryerRunning
         self.stopTheDryerLoop = False
 
         logger = get_dryer_logger()
@@ -98,7 +106,6 @@ class Dryer:
             if meanDev >= RUNNING_THRESHOLD_HI:
                 continue # Reject outliers caused by loading/unloading laundry, opening/closing door.
 
-            # print("%10f" %(meanDevVals[N-1]))
             self.dryerRunning = meanDev > RUNNING_THRESHOLD_LO
             
             # Reset the timer when you start the dryer.
@@ -109,12 +116,13 @@ class Dryer:
             # To avoid potential email spam as meanDev slowly crosses RUNNING_THRESHOLD_LO,
             # only send email if dryer stopped after running for at least MIN_RUNTIME_SEC seconds.
             MIN_RUNTIME_SEC = 30
-            self.runtime_s = self.dryerRunning * (time.time_ns() - startTime) / BILLION
+            self.runtime_s = (self.dryerRunning or prev_running) * (time.time_ns() - startTime) / BILLION
             if self.runtime_s > MIN_RUNTIME_SEC and not self.dryerRunning and prev_running:
                 msg = f"Dryer stopped afer {self.runtime_s} seconds."
-                self.runtime_s = 0
+                self.runtime_s = 0 # Must reset runtime_s AFTER checking if the dryer stopped.
                 logger.debug(msg)
-                send_email(msg)
+                # send_email(msg)
+                self.dryerStopped = True
 
             prev_running = self.dryerRunning
             asquaredVals = np.roll(asquaredVals, -1)

@@ -53,9 +53,16 @@ def client_thread(conn, addr):
         elif "list" == data:
             if dryer:
                 monitorStatus = (not dryer.dryerMonitorRunning()) * "NOT " + "running"
-                dryerStatus = ((not dryer.getDryerRunning()) * "NOT " + "running") if dryer.dryerMonitorRunning() else "Unknown"
-                dryerRuntime = dryer.getRuntimeSec()
-                conn.send(str.encode(f"{monitorStatus},{dryerStatus},{dryerRuntime}\n"))
+                dryerStatus = "Unknown"
+                dryerRuntime = "Unknown"
+                dryerStopped = (dryer.getDryerStopped() * "STOPPED")
+                # print(f"dryerStopped: {dryerStopped}")
+                if dryer.dryerMonitorRunning():
+                    dryerStatus = ((not dryer.getDryerRunning()) * "NOT " + "running")
+                    dryerRuntime = dryer.getRuntimeSec()
+                    
+                conn.send(str.encode(
+                    f"{monitorStatus},{dryerStatus},{dryerRuntime},{dryerStopped}\n"))
         else:
             print(f"Client {addr[1]} command: " + data)
             reply = "Unimplemented server command: " + data + "\n"
