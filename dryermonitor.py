@@ -120,7 +120,7 @@ class Dryer:
 
             # To avoid potential email spam as meanDev slowly crosses RUNNING_THRESHOLD_LO,
             # only send email if dryer stopped after running for at least MIN_RUNTIME_SEC seconds.
-            MIN_RUNTIME_SEC = 20
+            MIN_RUNTIME_SEC = 30
             self.runtime_s = (self.dryerRunning or prev_running) * (time.time_ns() - startTime) / BILLION
             if self.runtime_s > MIN_RUNTIME_SEC and not self.dryerRunning and prev_running:
                 msg = f"Dryer stopped afer {self.runtime_s} seconds."

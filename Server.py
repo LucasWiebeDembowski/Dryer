@@ -82,7 +82,7 @@ tcpServer.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 # s.bind(("192.168.193.135", 1234))
 # s.bind(("192.168.1.42", 1234))
 # tcpServer.bind(("192.168.100.105", 1234)) # My desktop
-tcpServer.bind(("192.168.100.107", 1234)) # Spot
+tcpServer.bind(("192.168.1.106", 1234)) # Spot
 tcpServer.settimeout(0.2) # timeout for listening
 # tcpServer.listen(5)
 

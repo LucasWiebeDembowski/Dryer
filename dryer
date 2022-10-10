@@ -79,12 +79,12 @@ while true; do
             ;;
         -s|--start)
             s=y
-            echo "start" | nc -q0 192.168.100.107 1234
+            echo "start" | nc -q0 192.168.1.106 1234
             shift
             ;;
         -t|--stop)
             s=y
-            echo "stop" | nc -q0 192.168.100.107 1234
+            echo "stop" | nc -q0 192.168.1.106 1234
             shift
             ;;
         --)
