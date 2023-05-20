@@ -17,4 +17,4 @@ Recommend using some burner account you don't care about as the sender, and your
 `./killDryer.sh`
 
 ##### Check if dryer monitor is running
-`pgrep -f "python3 dryer"`
+`./dryer -l`
