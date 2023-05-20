@@ -12,6 +12,7 @@ import busio
 import numpy as np
 import adafruit_adxl34x
 import logging
+import subprocess
 
 # Sleep for sampleTime seconds, then return an accelerometer reading (array of three values)
 def sample_acceleration(accelerometer, sampleTime):
@@ -128,6 +129,7 @@ class Dryer:
                 self.runtime_s = 0 # Must reset runtime_s AFTER checking if the dryer stopped.
                 logger.debug(msg)
                 # send_email(msg)
+                subprocess.run(["mpg123", "/home/dairine/code/dryer/Alarm.mp3"])
                 self.dryerStopped = True
 
             prev_running = self.dryerRunning
