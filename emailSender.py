@@ -27,3 +27,6 @@ def send_email(msg):
     except Exception as ex:
         print("Email failed to send.")
         print(ex)
+
+if __name__ == "__main__":
+    send_email("This is an example email.")

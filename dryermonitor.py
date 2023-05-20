@@ -128,7 +128,7 @@ class Dryer:
                 self.lastRuntime_s = self.runtime_s
                 self.runtime_s = 0 # Must reset runtime_s AFTER checking if the dryer stopped.
                 logger.debug(msg)
-                # send_email(msg)
+                send_email(msg)
                 subprocess.run(["mpg123", "/home/dairine/code/dryer/Alarm.mp3"])
                 self.dryerStopped = True
 
