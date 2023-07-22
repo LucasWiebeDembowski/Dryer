@@ -13,6 +13,7 @@ import numpy as np
 import adafruit_adxl34x
 import logging
 import subprocess
+from datetime import datetime
 
 # Sleep for sampleTime seconds, then return an accelerometer reading (array of three values)
 def sample_acceleration(accelerometer, sampleTime):
@@ -121,9 +122,13 @@ class Dryer:
 
             # To avoid potential email spam as meanDev slowly crosses RUNNING_THRESHOLD_LO,
             # only send email if dryer stopped after running for at least MIN_RUNTIME_SEC seconds.
-            MIN_RUNTIME_SEC = 30
+            # And to avoid alarm ringing from random vibrations in the building
+            # (which I've seen last up to 90 sec, and happened in the middle of the night more than once),
+            # only ring during the day and if runtime was reasonably long.
+            MIN_RUNTIME_SEC = 120
+            currentHour = datetime.now().hour
             self.runtime_s = (self.dryerRunning or prev_running) * (time.time_ns() - startTime) / BILLION
-            if self.runtime_s > MIN_RUNTIME_SEC and not self.dryerRunning and prev_running:
+            if currentHour <= 22 and currentHour >= 8 and self.runtime_s > MIN_RUNTIME_SEC and not self.dryerRunning and prev_running:
                 msg = f"Dryer stopped afer {self.runtime_s} seconds."
                 self.lastRuntime_s = self.runtime_s
                 self.runtime_s = 0 # Must reset runtime_s AFTER checking if the dryer stopped.
