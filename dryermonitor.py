@@ -123,9 +123,9 @@ class Dryer:
             # To avoid potential email spam as meanDev slowly crosses RUNNING_THRESHOLD_LO,
             # only send email if dryer stopped after running for at least MIN_RUNTIME_SEC seconds.
             # And to avoid alarm ringing from random vibrations in the building
-            # (which I've seen last up to 90 sec, and happened in the middle of the night more than once),
+            # (which I've seen last up to a couple minutes, and happened in the middle of the night more than once),
             # only ring during the day and if runtime was reasonably long.
-            MIN_RUNTIME_SEC = 120
+            MIN_RUNTIME_SEC = 5*60
             currentHour = datetime.now().hour
             self.runtime_s = (self.dryerRunning or prev_running) * (time.time_ns() - startTime) / BILLION
             if currentHour <= 22 and currentHour >= 8 and self.runtime_s > MIN_RUNTIME_SEC and not self.dryerRunning and prev_running:
