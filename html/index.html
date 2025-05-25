@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<!-- https://www.w3schools.com/xml/ajax_php.asp -->
+<html>
+<head>
+<script>
+const HttpCodes = { // http://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml
+   OK : 200,
+   notFound : 404
+   // etc
+}
+function sendAjax(url, func=function(){}) {
+    var xmlhttp = new XMLHttpRequest();
+    xmlhttp.onreadystatechange = func;
+    xmlhttp.open("GET", url, true);
+    xmlhttp.send();
+}
+function startMonitor() {
+    sendAjax("mywebpage.php?cmd=start");
+}
+function stopMonitor() {
+    sendAjax("mywebpage.php?cmd=stop");
+}
+function getDryerStatus() {
+    sendAjax("mywebpage.php?cmd=list", function() {
+        if (this.readyState == XMLHttpRequest.DONE && this.status == HttpCodes.OK) {
+            if(this.responseText == "") {
+                document.getElementById("MonitorStatus").innerHTML = "Unknown";
+                document.getElementById("DryerStatus").innerHTML = "Unknown";
+                document.getElementById("DryerRunningTime").innerHTML = "Unknown";
+            }else {
+                const arrayOfStrings = this.responseText.split(",");
+                document.getElementById("MonitorStatus").innerHTML = arrayOfStrings[0];
+                document.getElementById("DryerStatus").innerHTML = arrayOfStrings[1];
+                document.getElementById("DryerRunningTime").innerHTML = arrayOfStrings[2];
+            }
+        }
+    });
+}
+setInterval(getDryerStatus, 1000)
+</script>
+</head>
+<body>
+
+<form>
+<input type="button" onclick="startMonitor()" value="Start Monitoring Dryer">
+<input type="button" onclick="stopMonitor()" value="Stop Monitoring Dryer">
+</form>
+<table>
+    <tr>
+        <td>Dryer monitor status:</td><td id="MonitorStatus">Unknown</td>
+    </tr>
+    <tr>
+        <td>Dryer status:</td><td id="DryerStatus">Unknown</td>
+    </tr>
+    <tr>
+        <td>Dryer running time:</td><td id="DryerRunningTime">Unknown</td>
+    </tr>
+</table>
+</body>
+</html>
