@@ -9,6 +9,8 @@ list() {
     else
         echo "Dryer server is up."
         echo "PID: $pid"
+        printf "Dryer loop: "
+        echo "list" | nc -q0 $(ip route | awk '/default/ {print $9}') 1234 | awk -F ',' '{print $1}'
     fi
 }
 
@@ -18,7 +20,8 @@ runDryerServer() {
 }
 
 killDryerServer() {
-    pkill -f "python3 $dryerScript" && echo "Successfully killed dryer" || echo "Could not kill dryer."
+    pkill -f "python3 $dryerScript" && echo "Successfully killed dryer" ||
+        echo "Could not kill dryer, it might not have been running yet."
 }
 
 # saner programming env: these switches turn some bugs into errors
@@ -55,11 +58,18 @@ fi
 # read getopt’s output this way to handle the quoting right:
 eval set -- "$PARSED"
 
-h=n l=n r=n s=n
+h=n l=n r=n k=n s=n t=n 
 # now enjoy the options in order and nicely split until we see --
 while true; do
     case "$1" in
         -h|--help)
+            echo -e "dryer\nProcesses the options below and executes on them in the order provided\n\
+\t-h,\t--help\t\tprint help message\n\
+\t-l,\t--list\t\tShow status of the dryer server and dryer monitor loop\n\
+\t-r,\t--run\t\tRun dryer server and start the dryer monitor loop\n\
+\t-k,\t--kill\t\tStop the dryer server\n\
+\t-s,\t--start\t\tAssume the server is running already, start the dryer monitor loop\n\
+\t-t,\t--stop\t\tStop the dryer monitor loop but don't stop the TCP server\n"
             h=y
             shift
             ;;
@@ -73,18 +83,21 @@ while true; do
             runDryerServer
             shift
             ;;
-        -s|--kill)
+        -k|--kill)
+            k=y
             killDryerServer
             shift
             ;;
         -s|--start)
             s=y
-            echo "start" | nc -q0 192.168.1.106 1234
+            echo "start" | nc -q0 $(ip route | awk '/default/ {print $9}') 1234 ||
+                echo "Failed to send start command, try starting the server first"
             shift
             ;;
         -t|--stop)
-            s=y
-            echo "stop" | nc -q0 192.168.1.106 1234
+            t=y
+            echo "stop" | nc -q0 $(ip route | awk '/default/ {print $9}') 1234 ||
+                echo "Failed to send stop command, try starting the server first"
             shift
             ;;
         --)
@@ -103,9 +116,3 @@ done
 #     echo "$0: A single input file is required."
 #     exit 4
 # fi
-if [ "$r" == "y" ] && [ "$s" == "y" ]; then
-    echo "Error, cannot both run and stop."
-    exit 1
-fi
-
-echo "help: $h, list: $l, run: $r, stop: $s"
