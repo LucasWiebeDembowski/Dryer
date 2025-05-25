@@ -8,7 +8,7 @@ SENDER_EMAIL_ADDRESS = "example@example.com"
 SENDER_EMAIL_PASSWORD = "examplePassword"
 RECEIVER_EMAIL_ADDRESS = "example2@example2.com"
 ```
-Recommend using some burner account you don't care about as the sender, and your real email as the receiver.
+Obviously storing your email password in plaintext is insecure. Recommend using some burner account you don't care about as the sender, and your real email as the receiver. TODO store secrets securely.
 
 ##### Run the program
 `./runDryer.sh`
