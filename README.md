@@ -30,9 +30,9 @@ The files used for the web page are in the html folder of this repo. After updat
 #### How to check if dryer server is running and if the dryer monitor loop is running:
 `./dryer -l`  
 
-Run `./dryer --help` for more options. Alternatively:  
+Run `./dryer --help` for more options. For example:  
 ##### Run the program
-`./runDryer.sh`
+`./dryer --run`
 
 ##### Stop the program
-`./killDryer.sh`
+`./dryer --kill`
