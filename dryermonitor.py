@@ -56,6 +56,12 @@ class Dryer:
         self.dryerStopped = False
         self.lastRuntime_s = 0 # Duration of the last dryer run.
 
+
+    def __enter__(self):
+        return self
+    def __exit__(self):
+        return self
+
     def getDryerRunning(self):
         return self.dryerRunning
 
